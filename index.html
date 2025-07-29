@@ -1,457 +1,556 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
+
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мониторинг камер видеонаблюдения</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+    <title>Проверка видеонаблюдения</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
+
+<style>
+        * {
+            margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            background-color: rgb(144, 199, 255);
-            padding: 10px;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        .links-container {
+        
+.object-title span {
+        flex-grow: 1; /* Растягивает текст на всё доступное пространство */
+        text-align: left; /* Выравнивание по левому краю */
+        padding-right: 20px; /* Отступ от стрелки */
+    }
+    
+    .object-title i {
+        margin-right: 10px; /* Отступ между иконкой и текстом */
+    }
+
+
+        body {
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #fff;
         }
-        .link-item {
-            flex: 1;
-            min-width: 300px;
-        }
-        .video-container {
+        
+        .header {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            overflow: hidden;
-            margin-bottom: 15px;
+            z-index: 10;
         }
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+        
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .menu {
+            width: 30%;
+            background: rgba(30, 40, 80, 0.8);
+            padding: 20px 0;
+            overflow-y: auto;
+            border-right: 2px solid rgba(52, 152, 219, 0.5);
+        }
+        
+        .object {
+            margin: 15px;
+            background: rgba(20, 30, 70, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .object:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .object-title {
+            background: linear-gradient(90deg, #2980b9, #3498db);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .object-title::after {
+            content: "▼";
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+        
+        .object-title.active::after {
+            transform: rotate(180deg);
+        }
+        
+        .camera-links {
+            display: none;
+            padding: 10px;
+            background: rgba(25, 35, 75, 0.9);
+        }
+        
+        .camera-links.active {
+            display: block;
+        }
+        
+        .camera-link {
+            display: block;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: rgba(40, 50, 100, 0.8);
+            color: #ecf0f1;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .camera-link:hover {
+            background: rgba(52, 152, 219, 0.8);
+            transform: translateX(5px);
+        }
+        
+        .camera-link::before {
+            content: "▶";
+            margin-right: 10px;
+            color: #2ecc71;
+        }
+        
+        .video-container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 10, 30, 0.7);
+        }
+        
+        .video-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 20, 40, 0.5);
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            color: #7f8c8d;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .video-placeholder i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .video-frame {
+            flex: 1;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            display: none;
+        }
+        
+        .video-frame.active {
+            display: block;
+        }
+        
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-        a {
-            display: block;
-            margin-bottom: 10px;
-            color: #0066cc;
-            text-decoration: none;
+        
+        .video-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(30, 40, 80, 0.8);
+            border-radius: 8px;
+            font-size: 0.9rem;
         }
-        a:hover {
-            text-decoration: underline;
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .menu {
+                width: 100%;
+                height: 40%;
+                border-right: none;
+                border-bottom: 2px solid rgba(52, 152, 219, 0.5);
+            }
+            
+            .video-container {
+                height: 60%;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Мониторинг камер видеонаблюдения</h1>
-
-    <div class="section">
-        <div class="section-title">Школа-сад на 120/70 мест в с. Оросу Верхневилюйского улуса</div>
-        <a href="https://lk-b2b.camera.rt.ru/main/cameras" target="_blank">Камера 1</a>
+    <div class="header">
+        <h1>Проверка видеонаблюдения</h1>
+        <p>Выберите объект и камеру для просмотра</p>
     </div>
 
-<div class="section">
-        <div class="section-title">Лечебный корпус в с.Андреевское Верхневилюйского улуса (ниже еще 2 камеры)</div>
-        <a href="https://www.ipeye.ru/ipeye_service/index.php?route=page_play&devcode=cd6aa248eb2f4499b1b717becba157c2" target="_blank">Камера 1</a>
-    </div>
 
-    <div class="section">
-        <div class="section-title">Пристрой к гимназии на 176 учащихся в п. Белая Гора Абыйского улуса</div>
-        <a href="https://www.a-telecom.ru/belayagora/" target="_blank">Камера 1</a>
-    </div>
 
-    <div class="section">
-        <div class="section-title">Школа №1 на 253 учащихся в г. Якутске</div>
-        <a href="https://camera.net.ru/" target="_blank">Камера 1</a>
-    </div>
-
-    <div class="section">
-        <div class="section-title">ГБОУ ВО "Высшая школа музыки Республики Саха (Якутия) (институт) им. В.А. Босикова "Учебный корпус на 240 учащихся с интернатом на 150 мест</div>
-        <a href="https://sette.su/cameras/" target="_blank">Камера 1</a>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Поликлиника на 200 посещений в смену в с.Амга Амгинского района</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/EhdDGa2G/"></iframe>
+    
+    <div class="container">
+        <div class="menu">
+            <!-- Объект 1 -->
+            <div class="object">
+                <h2 class="object-title"><i class="fas fa-clinic-medical"></i><span>1. Поликлиника на 200 посещений в смену (с. Амга, Амгинский район)</span></h2>
+                <div class="camera-links">
+                    <a href="https://rtsp.me/embed/EhdDGa2G/" class="camera-link" data-title="Поликлиника с.Амга - Камера 1">Камера 1</a>
+                    <a href="https://rtsp.me/embed/AbR5T452/" class="camera-link" data-title="Поликлиника с.Амга - Камера 2">Камера 2</a>
+                    <a href="https://rtsp.me/embed/kyrAfts8/" class="camera-link" data-title="Поликлиника с.Амга - Камера 3">Камера 3</a>
+                    <a href="https://rtsp.ru/embed/7DZdzaSH/" class="camera-link" data-title="Поликлиника с.Амга - Камера 4">Камера 4</a>
+                    <a href="https://rtsp.ru/embed/kfQyke6S/" class="camera-link" data-title="Поликлиника с.Амга - Камера 5">Камера 5</a>
                 </div>
             </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/AbR5T452/"></iframe>
+            
+            <!-- Объект 2 -->
+            <div class="object">
+                <div class="object-title"><i class="fas fa-hospital"></i><span>2. Больничный комплекс (с. Майя, Мегино-Кангаласский район)</span></div>
+	<div class="camera-links">
+                    <a href="https://rtsp.me/embed/8K4bBHBT/" class="camera-link" data-title="Больничный комплекс с.Майя - Камера 1">Камера 1</a>
+                    <a href="https://rtsp.me/embed/yNtF49Q4/" class="camera-link" data-title="Больничный комплекс с.Майя - Камера 2">Камера 2</a>
+                    <a href="https://rtsp.me/embed/aa4SGdyS/" class="camera-link" data-title="Больничный комплекс с.Майя - Камера 3">Камера 3</a>
                 </div>
             </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/kyrAfts8/"></iframe>
+            
+            <!-- Объект 3 -->
+            <div class="object">
+                <div class="object-title"><i class="fas fa-building"></i><span>3. Лечебный корпус (г. Нюрба)</span></div>
+                <div class="camera-links">
+                    <a href="https://lk-b2b.camera.rt.ru/sl/TY6M72hJw" class="camera-link" data-title="Лечебный корпус г.Нюрба - Камера 1">Камера 1</a>
+                    <a href="https://lk-b2b.camera.rt.ru/sl/dkCA3xB4i" class="camera-link" data-title="Лечебный корпус г.Нюрба - Камера 2">Камера 2</a>
+                    <a href="https://lk-b2b.camera.rt.ru/sl/N3K3qLfvi" class="camera-link" data-title="Лечебный корпус г.Нюрба - Камера 3">Камера 3</a>
                 </div>
+            </div>
+
+            <!-- Объект 4 -->
+            <div class="object">
+                <div class="object-title"><i class="fas fa-building"></i><span>4. Лечебный корпус (с. Намцы, Намский район)</span></div>
+                <div class="camera-links">
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=7356bb1c437d4f7f87e9d9538e44492b&autoplay=0&archive=1" class="camera-link" data-title="Лечебный корпус с. Намцы Камера 1"> Камера 1</a>
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=6b9a2cb388c448739ca2298f28c933fe&autoplay=0&archive=1" class="camera-link" data-title="Лечебный корпус с. Намцы Камера 2">Камера 2</a>
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=c25014b35c974dd4affc2021e7fab211&autoplay=0&archive=1" class="camera-link" data-title="Лечебный корпус с. Намцы Камера 3">Камера 3</a>
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=db99e48dc5ec44598aef4b5b5d2c7da7&autoplay=0&archive=1" class="camera-link" data-title="Лечебный корпус с. Намцы Камера 4">Камера 4</a>
+                    </div>
+                </div>
+
+                <!-- Объект 5 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-clinic-medical"></i><span>5. Лечебный корпус ( г. Вилюйск, Вилюйский район)</span></div>
+                    <div class="camera-links">
+                        <a href="https://ipeye.ru/extview/index.php?exttoken=0yVyB6lmtnJjPyf724tQDr9VhVVMSymHn75o4hRoKbMZQsXHmFYpwXAUsVg9IIGvGCaAkqouG1JWjheLm10ZO1t5LQ4VYBFeDffnLIYSAinjEGur8lFMdyHoDC8cEE6H" class="camera-link" data-title="Лечебный корпус г. Вилюйск (все камеры)">Все камеры</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 6 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-home"></i><span>6. Дом-интернат для престарелых (с. Матта, Мегино-Кангаласский район)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/Y3a34RrF/" class="camera-link" data-title="Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 7 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-stethoscope"></i><span>7. Кожно-венерологический диспансер (г. Нерюнгри)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/6GS7sEHG/" class="camera-link" data-title="Кожно-венерологический диспансер г. Нерюнгри Камера 1">Камера 1</a>
+                        <a href="https://rtsp.me/embed/ety9Rdna/" class="camera-link" data-title="Кожно-венерологический диспансер г. Нерюнгри Камера 2">Камера 2</a>
+                        <a href="https://rtsp.me/embed/3EY4ZF57/" class="camera-link" data-title="Кожно-венерологический диспансер г. Нерюнгри Камера 3">Камера 3</a>
+                        <a href="https://rtsp.me/embed/sKQi2f77/" class="camera-link" data-title="Кожно-венерологический диспансер г. Нерюнгри Камера 4">Камера 4</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 8 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-school"></i><span>8. Школа на 450 учащихся (с. Сунтар, Сунтарский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://lk-b2b.camera.rt.ru/sl/8svNwlSZP" class="camera-link" data-title="Школа на 450 учащихся с. Сунтар Камера 1">  Камера 1</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/KFwL-77em" class="camera-link" data-title="Школа на 450 учащихся с. Сунтар Камера 2">  Камера 2</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/iEbmGcqZC" class="camera-link" data-title="Школа на 450 учащихся с. Сунтар Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 9 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-theater-masks"></i><span>9. Дом культуры (с. Крестях, Сунтарский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://lk-b2b.camera.rt.ru/sl/MOX_-HLAH" class="camera-link" data-title="Дом культуры Сунтарский улус Камера 1">  Камера 1</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/x95PtcdivI" class="camera-link" data-title="Дом культуры Сунтарский улус Камера 2">  Камера 2</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/66-A6yldR" class="camera-link" data-title="Дом культуры Сунтарский улус Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 10 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-school"></i><span>10. Школа-сад на 120/70 мест (с. Оросу, Верхневилюйский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://lk-b2b.camera.rt.ru/main/cameras" class="camera-link" data-title="Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 11 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-school"></i><span>11. Школа-сад на 90/40 мест (с. Тумул, Усть-Алданский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/ye9iSdHn/" class="camera-link" data-title="Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 12 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-school"></i><span>12. Школа на 450 учащихся (с. Намцы, Намский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=5ed98afe30754d8fb0350156b5793e12&autoplay=0&archive=1" class="camera-link" data-title="Камера 1">  Камера 1</a>
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=406bf29bb5324249875216d1ee60c765&autoplay=0&archive=1" class="camera-link" data-title="Камера 2">  Камера 2</a>
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=8a86a917196a4faab75928d080ad424d&autoplay=0&archive=1" class="camera-link" data-title="Камера 3">  Камера 3</a>
+                        <a href="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=008f2b12932e4c5e9887af0957bada1e&autoplay=0&archive=1" class="camera-link" data-title="Камера 4">  Камера 4</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 13 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-hospital"></i><span>13. Лечебный корпус (с. Андреевское, Верхневилюйский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://www.ipeye.ru/ipeye_service/index.php?route=page_play&devcode=cd6aa248eb2f4499b1b717becba157c2" class="camera-link" data-title="Камера 1">  Камера 1</a>
+                        <a href="https://cam.haryskhal.ru:8443/cameras/SKTrast554/embed" class="camera-link" data-title="Камера 2">  Камера 2</a>
+                        <a href="https://cam.haryskhal.ru:8443/cameras/SKTTrast553/embed" class="camera-link" data-title="Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 14 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-running"></i><span>14. Спортивный зал им. А.М. Заболоцкого (с. Танда, Усть-Алданский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://cam.haryskhal.ru:8443/cameras/STKTandakam1/embed" class="camera-link" data-title="Камера 1">  Камера 1</a>
+                        <a href="https://cam.haryskhal.ru:8443/cameras/STKTandakam2/embed" class="camera-link" data-title="Камера 2">  Камера 2</a>
+                        <a href="https://cam.haryskhal.ru:8443/cameras/STKTandakam3/embed" class="camera-link" data-title="Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                <!-- Объект 15 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-hospital-alt"></i><span>15. Больничный комплекс на 45 коек (п. Сангар, Кобяйский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/Y6G22ki8/"  class="camera-link" data-title="Больничный комплекс на 45 коек п. Сангар, Кобяйский улус Камера 1">  Камера 1</a>
+                        <a href="https://rtsp.me/embed/hzh4fZ9a/"  class="camera-link" data-title="Камера 2">Больничный комплекс на 45 коек п. Сангар, Кобяйский улус Камера 2</a>
+                        <a href="https://rtsp.me/embed/kYDKfHFb/"  class="camera-link" data-title="Камера 3">Больничный комплекс на 45 коек п. Сангар, Кобяйский улус Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 16 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-school"></i><span>16. Пристрой к гимназии (п. Белая Гора, Абыйский улус)</span></div>
+                    <div class="camera-links">
+                        <a href="https://www.a-telecom.ru/belayagora/"  class="camera-link" data-title="Пристрой к гимназии (п. Белая Гора, Абыйский улус) Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 17 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-graduation-cap"></i><span>17. СОШ на 350 мест (п. Чульман, Нерюнгринский район)</span></div>
+                    <div class="camera-links">
+                        <a href="https://cctv.sv-en.ru/site/embed.html?id=105962&html5="  class="camera-link" data-title="СОШ на 350 мест (п. Чульман, Нерюнгринский район) Камера 1">  Камера 1</a>
+                        <a href="https://cctv.sv-en.ru/site/embed.html?id=105964&html5="  class="camera-link" data-title="СОШ на 350 мест (п. Чульман, Нерюнгринский район) Камера 2">  Камера 2</a>
+                        <a href="https://cctv.sv-en.ru/site/embed.html?id=105966&html5="  class="camera-link" data-title="СОШ на 350 мест (п. Чульман, Нерюнгринский район) Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 18 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-clinic-medical"></i><span>18. Ремонт Поликлиники для взрослых (г. Нерюнгри)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/Fn8Esd59/"  class="camera-link" data-title="Ремонт Поликлиники для взрослых (г. Нерюнгри) Камера 1">  Камера 1</a>
+                        <a href="https://rtsp.me/embed/R96f4bTs/"  class="camera-link" data-title="Ремонт Поликлиники для взрослых (г. Нерюнгри) Камера 2">  Камера 2</a>
+                        <a href="https://rtsp.me/embed/nGD7B4bn/"  class="camera-link" data-title="Ремонт Поликлиники для взрослых (г. Нерюнгри) Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 19 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-hospital"></i><span>19. Ремонт Больничного комплекса (блок В) (г. Нерюнгри)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/tsekrFbe/"  class="camera-link" data-title="Ремонт Больничного комплекса (блок В) (г. Нерюнгри) Камера 1">  Камера 1</a>
+                        <a href="https://rtsp.me/embed/syT8z2DH/"  class="camera-link" data-title="Ремонт Больничного комплекса (блок В) (г. Нерюнгри) Камера 2">  Камера 2</a>
+                        <a href="https://rtsp.me/embed/5zbY9rKe/"  class="camera-link" data-title="Ремонт Больничного комплекса (блок В) (г. Нерюнгри) Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 20 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-hospital-user"></i><span>20. Участковая больница (п. Нижний Бестях, Мегино-Кангаласский район)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/3nYbhzHA/"  class="camera-link" data-title="Участковая больница (п. Нижний Бестях, Мегино-Кангаласский район) Камера 1">  Камера 1</a>
+                        <a href="https://rtsp.me/embed/FSrabQe4/"  class="camera-link" data-title="Участковая больница (п. Нижний Бестях, Мегино-Кангаласский район) Камера 2">  Камера 2</a>
+                        <a href="https://rtsp.me/embed/sRTy4RN7/"  class="camera-link" data-title="Участковая больница (п. Нижний Бестях, Мегино-Кангаласский район) Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+
+                <!-- Объект 21 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-school"></i><span>21. Школа №1 (г. Якутск)</span></div>
+                    <div class="camera-links">
+                        <a href="https://camera.net.ru/"  class="camera-link" data-title="Школа №1 (г. Якутск) Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 22 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-building"></i><span>22. Ремонт Нюрбинский МДИПИ (г. Нюрба)</span></div>
+                    <div class="camera-links">
+                        <a href="https://rtsp.me/embed/keYt5QB5/"  class="camera-link" data-title="Ремонт Нюрбинский МДИПИ (г. Нюрба) Камера 1">  Камера 1</a>
+                        <a href="https://rtsp.me/embed/Fe3KAsbG/"  class="camera-link" data-title="Ремонт Нюрбинский МДИПИ (г. Нюрба) Камера 2">  Камера 2</a>
+                        <a href="https://rtsp.me/embed/e9hhred3/"  class="camera-link" data-title="Ремонт Нюрбинский МДИПИ (г. Нюрба) Камера 3">  Камера 3</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 23 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-child"></i><span>23. Детский сад на 240 мест (мкрн. Спортивный, г. Якутск)</span></div>
+                    <div class="camera-links">
+                        <a href="https://lk-b2b.camera.rt.ru/sl/OCcOvrhr9"  class="camera-link" data-title="Детский сад на 240 мест (мкрн. Спортивный, г. Якутск) Камера 1">  Камера 1</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/oMnQrTPhW"  class="camera-link" data-title="Детский сад на 240 мест (мкрн. Спортивный, г. Якутск) Камера 2">  Камера 2</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/24l7KJtmk"  class="camera-link" data-title="Детский сад на 240 мест (мкрн. Спортивный, г. Якутск) Камера 3">  Камера 3</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/RF0wekApW"  class="camera-link" data-title="Детский сад на 240 мест (мкрн. Спортивный, г. Якутск) Камера 4">  Камера 4</a>
+                        <a href="https://lk-b2b.camera.rt.ru/sl/zwovP9sQd"  class="camera-link" data-title="Детский сад на 240 мест (мкрн. Спортивный, г. Якутск) Камера 5">  Камера 5</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 24 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-home"></i><span>24. Республиканский дом-интернат (г. Якутск, ул. Якутская, 8)</span></div>
+                    <div class="camera-links">
+                        <a href="http://admin:@rdr14.devline.tv:9786/cameras/5/streaming/main.mp4"  class="camera-link" data-title="Республиканский дом-интернат (г. Якутск, ул. Якутская, 8) Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+                
+                <!-- Объект 25 -->
+                <div class="object">
+                    <div class="object-title"><i class="fas fa-music"></i><span>25. Высшая школа музыки (г. Якутск)</span></div>
+                    <div class="camera-links">
+                        <a href="https://sette.su/cameras/"  class="camera-link" data-title="Высшая школа музыки (г. Якутск) Камера 1">  Камера 1</a>
+                    </div>
+                </div>
+
+           </div>
+        
+        <div class="video-container">
+            <div class="video-placeholder" id="placeholder">
+                <div style="font-size: 5rem; margin-bottom: 20px;">📹</div>
+                <h3>Выберите камеру для просмотра</h3>
+                <p>Нажмите на одну из ссылок в левом меню, чтобы начать просмотр</p>
+            </div>
+            
+            <div class="video-frame" id="videoFrame">
+                <iframe id="videoPlayer" src=""></iframe>
+            </div>
+            
+            <div class="video-info">
+                <h3 id="cameraTitle">Информация о камере</h3>
+                <p id="cameraUrl">URL: </p>
             </div>
         </div>
     </div>
+    
 
-    <div class="section">
-        <div class="section-title">Больничный комплекс в с. Майя Мегино-Кангаласского района</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/8K4bBHBT/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/yNtF49Q4/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/aa4SGdyS/"></iframe>
-                </div>
-            </div>
-        </div>
+
+    <div class="footer">
+        Система проверки видеонаблюдения ГКУ "СГЗ РС(Я)" &copy; 2025
     </div>
 
-    <div class="section">
-        <div class="section-title">Лечебный корпус в г. Нюрба Нюрбинского улуса</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/N3K3qLfvi"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/TY6M72hJw"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/dkCA3xB4i"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Лечебный корпус в с. Намцы Намского района</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=7356bb1c437d4f7f87e9d9538e44492b&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=6b9a2cb388c448739ca2298f28c933fe&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=c25014b35c974dd4affc2021e7fab211&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=db99e48dc5ec44598aef4b5b5d2c7da7&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Дом-интернат для престарелых и инвалидов на 51 койко-мест в с. Матта Мегино-Кангаласского района Республики Саха (Якутия)</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/Y3a34RrF/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/k2h8HZyT/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/Z5bASkK2/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Реконструкция здания Кожно-венерологического диспансера ГБУ РС (Я) "Нерюнгринская ЦРБ"</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/6GS7sEHG/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/ety9Rdna/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/3EY4ZF57/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/sKQi2f77/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Школа на 450 учащихся в с. Сунтар Сунтарского улуса</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/8svNwlSZP"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/KFwL-77em"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/iEbmGcqZC"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Стадион на 1000 мест в с. Ытык-Кюель Таттинского улуса Республики Саха (Якутия)</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/Ei7z2QQ4/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/NiHZ2eyt/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Школа на 450 учащихся в с. Намцы Намского улуса РС(Я)</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=5ed98afe30754d8fb0350156b5793e12&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=406bf29bb5324249875216d1ee60c765&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=8a86a917196a4faab75928d080ad424d&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://ipeye.ru/ipeye_service/api/iframe.php?iframe_player=1&dev=008f2b12932e4c5e9887af0957bada1e&autoplay=0&archive=1"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<div class="section">
-        <div class="section-title">Лечебный корпус в с.Андреевское Верхневилюйского улуса</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://cam.haryskhal.ru:8443/cameras/SKTrast554/embed"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://cam.haryskhal.ru:8443/cameras/SKTTrast553/embed"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Спортивный зал имени А.М. Заболоцкого в с.Танда Усть-Алданского улуса</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://cam.haryskhal.ru:8443/cameras/STKTandakam1/embed"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://cam.haryskhal.ru:8443/cameras/STKTandakam2/embed"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://cam.haryskhal.ru:8443/cameras/STKTandakam3/embed"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Больничный комплекс на 45 коек с поликлиникой 104 посещения в смену п.Сангар Кобяйского улуса</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/Y6G22ki8/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/hzh4fZ9a/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Капитальный ремонт Поликлиники для взрослых ГБУ РС(Я) "Нерюнгринская ЦРБ"</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/Fn8Esd59/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/R96f4bTs/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/nGD7B4bn/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Участковая больница в п. Нижний Бестях Мегино-Кангаласского района РС(Я)</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/3nYbhzHA/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/FSrabQe4/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/sRTy4RN7/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Капитальный ремонт Нюрбинский МДИПИ им. В.А.Петровой</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/keYt5QB5/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/Fe3KAsbG/"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://rtsp.me/embed/e9hhred3/"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Детский сад на 240 мест в мкрн. Спортивный г. Якутска</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/OCcOvrhr9"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/oMnQrTPhW"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/24l7KJtmk"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/RF0wekApW"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="https://lk-b2b.camera.rt.ru/sl/zwovP9sQd"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Реконструкция АУ РС(Я) "Республиканский дом-интернат для престарелых и инвалидов имени Решетникова В.П" с пристроем жилого корпуса на 200 мест по адресу: г. Якутск, ул. Якутская, 8</div>
-        <div class="links-container">
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="http://admin@rdr14.devline.tv:9786/cameras/5/streaming/main.mp4"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="http://admin@rdr14.devline.tv:9786/cameras/4/streaming/main.mp4"></iframe>
-                </div>
-            </div>
-            <div class="link-item">
-                <div class="video-container">
-                    <iframe src="http://admin@rdr14.devline.tv:9786/cameras/0/streaming/main.mp4"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script>
+        // Обработка кликов по заголовкам объектов
+        const objectTitles = document.querySelectorAll('.object-title');
+        objectTitles.forEach(title => {
+            title.addEventListener('click', () => {
+                const links = title.nextElementSibling;
+                const isActive = links.classList.contains('active');
+                
+                // Закрываем все открытые блоки
+                document.querySelectorAll('.camera-links.active').forEach(active => {
+                    if (active !== links) {
+                        active.classList.remove('active');
+                        active.previousElementSibling.classList.remove('active');
+                    }
+                });
+                
+                // Переключаем текущий блок
+                title.classList.toggle('active', !isActive);
+                links.classList.toggle('active', !isActive);
+            });
+        });
+        
+        // Обработка кликов по ссылкам камер
+        const cameraLinks = document.querySelectorAll('.camera-link');
+        cameraLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Получаем данные
+                const url = link.getAttribute('href');
+                const title = link.getAttribute('data-title');
+                
+                // Обновляем видео-плеер
+                document.getElementById('videoPlayer').src = url;
+                document.getElementById('videoFrame').classList.add('active');
+                document.getElementById('placeholder').style.display = 'none';
+                
+                // Обновляем информацию о камере
+                document.getElementById('cameraTitle').textContent = title;
+                document.getElementById('cameraUrl').textContent = `URL: ${url}`;
+                
+                // Подсвечиваем активную ссылку
+                cameraLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+        
+        // Инициализация: открываем первый объект и делаем активной первую камеру
+        document.querySelector('.camera-link').click();
+    </script>
 </body>
 </html>
